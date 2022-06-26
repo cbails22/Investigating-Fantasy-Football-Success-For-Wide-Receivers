@@ -121,17 +121,3 @@ ggplot(aes(reorder(Name, TD), TD)) +
   theme_classic()
 ```
 
-## Blogdown
-
-```{r}
-library(blogdown)
-```
-
-```{r}
-new_site(theme = "https://github.com/cbails22/Investigating-Fantasy-Football-Success-For-Wide-Receivers")
-```
-
-```{r}
-blogdown::new_site()
-```
-
