@@ -8,6 +8,7 @@ date: '2022-07-21'
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ## What metrics can we use to predict undervalued wide receivers in fantasy football?
 
 The ultimate goal of building a successful fantasy roster is to find players who score the most points. Simple, right? It would be nice if it was that simple.
