@@ -1,278 +1,72 @@
 ---
 title: "Wide Receiver Projections in Fantasy Football"
 output: html_document
-date: '2022-06-08'
+date: '2022-07-21'
 ---
 
 
 
-<p>Title: Evaluating Wide Receiver Performance in Fantasy Football</p>
-<p>Abstract:
-Fantasy football is a multi-billion dollar industry and has become a staple for casual and die-hard football fans. The use of data analysis has also exploded in the fantasy football community, mainly to make player projections so that fantasy players can gain any possible edge. Oftentimes, there are factors that cause players to exceed or fall short of their fantasy performance. The goal of this project is to look at wide receiver data to make predictions on players who could be huge values and/or busts next season based on underlying metrics.</p>
-<p>Context:
-The stakes of Fantasy Football can be very high. Whether it is professional players playing for huge prizes or just your common player playing for bragging rights over their friends, players are heavily invested and want to win, badly. An inevitable part of Fantasy Football is that there will be players who fall very short of their expectations. On the flipside, there are players who exceed their expectations. Oftentimes, there are very obvious reasons for why one or the other happens such as injuries or a change at quarterback leading to more or less success. Other times, however, there can be more underlying issues that may have pointed to or contributed to success (or lack thereof).</p>
-<p>The ultimate goal of Fantasy Football is to win, and have fun while doing it. There is undeniably a solid amount of “luck” involved in Fantasy Football. However, with so much data and player evaluation metrics now at our disposal, Fantasy players rely heavily on projections to help them craft their rosters. Projections are extremely hard and no one can get them right all the time. But, it is important for the Fantasy Football community to have people who are dedicated to doing their best at making accurate projections for players.</p>
-<p>Proposal:
-I hope to investigate wide receiver data specifically. The reasoning is because they are the largest position in terms of quantity in Fantasy Football. They are also some of the most influential players, and targeting the right/wrong receivers can make or break the chances of winning your league. The main question that I am trying to answer is: What are the biggest predictors of success for wide receivers in Fantasy Football? Based on these predictors, who are some wide receivers that players should target or stay away from in drafts for next season?</p>
-<p>I plan on using wide receiver data from past seasons to find correlations to fantasy performance in terms of points. From there, I hope to take the results from the correlation tests to identify players who performed well/poorly in these metrics and compare them with the amount of fantasy points these players scored last season. I also plan on running regression models to attempt to answer some of the same questions. My analysis will be done predominantly in R.</p>
-<p>I expect to find that there were a fair share of wide receivers who either outperformed their ability or vice versa. These players would then presumably be due for negative or positive regression to the mean for the upcoming season. My initial prediction is that wide receiver targets/target share percentage is going to be the biggest indicator of fantasy points scored. I also hope to be able to use what I find for my own Fantasy Football drafts in the upcoming season.</p>
-<p>Conclusion:
-Over and under performance is often an issue in Fantasy Football. Success in one season does not guarantee success in another, and the same goes for the reverse. It is important for Fantasy Football players to have access to projections that are backed up by what the data says. I plan to use data in order to assess wide receiver performance and find receivers that Fantasy players should either target or steer clear from in the 2022 season.</p>
-<p>This project has the potential to be expanded in the future. I could look at all the other positions in the Fantasy Football player pool as well (Quarterbacks, Running Backs, Tight Ends). It would be interesting to look at the different metrics that predict success for other positions than wide receivers, in the future.</p>
-<p>EDA:</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
-## ✔ tibble  3.1.7     ✔ dplyr   1.0.9
-## ✔ tidyr   1.2.0     ✔ stringr 1.4.0
-## ✔ readr   2.1.2     ✔ forcats 0.5.1</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>library(readr)
-library(readxl)
-library(blogdown)</code></pre>
-<div id="importing-main-datasets" class="section level2">
-<h2>Importing main datasets</h2>
-<pre class="r"><code>fantasy_stats &lt;- read.csv(&quot;fantasy-football-leaders_wr.csv&quot;)
-advanced_wr_stats &lt;- read.csv(&quot;advanced-wr-metrics.csv&quot;)
-advanced_wr_efficiency &lt;- read.csv(&quot;advanced-wr-efficiency-metrics.csv&quot;)</code></pre>
-<pre class="r"><code>head(fantasy_stats)</code></pre>
-<pre><code>##   Season Rk    ID             Name Team Pos GMS TGTS REC  PCT REC_YDS REC_TD
-## 1   2021  1 18882      Cooper Kupp  LAR  WR  17  191 145 75.9    1947     16
-## 2   2021  2 16470    Davante Adams   GB  WR  16  169 123 72.8    1553     11
-## 3   2021  3 20932     Deebo Samuel   SF  WR  16  121  77 63.6    1405      6
-## 4   2021  4 21685 Justin Jefferson  MIN  WR  17  167 108 64.7    1616     10
-## 5   2021  5 22564    Ja&#39;Marr Chase  CIN  WR  17  128  81 63.3    1455     13
-## 6   2021  6 18082      Tyreek Hill   KC  WR  17  159 111 69.8    1239      9
-##   LNG  Y.T  Y.R ATT RUSH_YDS  AVG RUSH_TD FUM LST  PPG   FPTS
-## 1  59 10.2 13.4   4       18  4.5       0   0   0 25.9 439.50
-## 2  59  9.2 12.6   0        0  0.0       0   0   0 21.5 344.30
-## 3  83 11.6 18.2  59      365  6.2       8   4   2 21.2 338.96
-## 4  56  9.7 15.0   6       14  2.3       0   1   1 19.4 330.40
-## 5  82 11.4 18.0   7       21  3.0       0   2   1 17.9 304.60
-## 6  75  7.8 11.2   9       96 10.7       0   2   1 17.4 296.50</code></pre>
-<pre class="r"><code>head(advanced_wr_stats)</code></pre>
-<pre><code>##   Season Rk    ID         Name TGTS REC  YDS TD HOG_RATE SNAP_SHARE
-## 1   2021  1 18882      C. Kupp  191 145 1947 16    19.31      94.01
-## 2   2021  2 16470     D. Adams  169 123 1553 11    20.99      80.33
-## 3   2021  3 20932    D. Samuel  120  77 1405  6    14.94      81.44
-## 4   2021  4 21685 J. Jefferson  167 108 1616 10    17.32      89.01
-## 5   2021  5 22564     J. Chase  128  81 1455 13    14.23      86.11
-## 6   2021  6 18082      T. Hill  159 111 1239  9    19.17      73.23
-##   AVG_TGT_DIST TOT_AIR_YARDS AY.GAME AY.REC TOT_TGTS Redzone_Tgts Endzone_Tgts
-## 1         8.32          1590   93.52   11.0      191           38           11
-## 2         8.99          1520   95.00   12.4      169           28           11
-## 3         8.09           971   60.68   12.6      120           10            6
-## 4        11.95          1996  117.41   18.5      167           23           15
-## 5        11.96          1532   90.11   18.9      128           12           12
-## 6        10.74          1709  100.52   15.4      159           24           11
-##   Tgt_Accuracy Tgt_Share FP.TGT
-## 1         7.76     31.72   2.30
-## 2         7.33     31.58   2.04
-## 3         7.14     27.77   2.82
-## 4         7.41     29.87   1.98
-## 5         7.30     23.70   2.38
-## 6         7.79     25.07   1.86</code></pre>
-<pre class="r"><code>head(advanced_wr_efficiency)</code></pre>
-<pre><code>##   Season Rk    ID         Name  Age TGTS REC  YDS TD Cushion TGT_SEP
-## 1   2021  1 18882      C. Kupp 29.0  191 145 1947 16    4.36    1.66
-## 2   2021  2 16470     D. Adams 29.5  169 123 1553 11    4.22    1.61
-## 3   2021  3 20932    D. Samuel 26.4  120  77 1405  6    4.74    1.64
-## 4   2021  4 21685 J. Jefferson 23.4  167 108 1616 10    4.38    1.53
-## 5   2021  5 22564     J. Chase 22.3  128  81 1455 13    3.89    1.53
-## 6   2021  6 18082      T. Hill 28.3  159 111 1239  9    4.26    1.68
-##   True_Catch_Rate Contested_TGTS Contested_REC Contested_Rate Y.REC Y.TGT
-## 1           93.54             62            13          20.96 13.42 10.19
-## 2           91.11             42             9          21.42 12.62  9.18
-## 3           81.91             23            10          43.47 18.24 11.70
-## 4           81.20             30            10          33.33 14.96  9.67
-## 5           80.19             36             9          25.00 17.96 11.36
-## 6           88.09             30             6          20.00 11.16  7.79
-##   Y.ROUTE Total_Drops Drop_Rate
-## 1    3.32           4      2.09
-## 2    3.24           6      3.55
-## 3    3.23          10      8.33
-## 4    2.75          11      6.58
-## 5    2.71           8      6.25
-## 6    2.31           6      3.77</code></pre>
-<div id="who-averages-the-most-touchdownsseason-over-the-last-5-years" class="section level3">
-<h3>Who averages the most touchdowns/season over the last 5 years</h3>
-<pre class="r"><code>fantasy_stats %&gt;%
-  filter(Season == &#39;2021&#39; | Season == &#39;2020&#39; | Season == &#39;2019&#39; | Season == &#39;2018&#39; | Season == &#39;2017&#39;) %&gt;%
-  filter(sum(GMS) &gt;= 20) %&gt;%
-  group_by(Name) %&gt;%
-  summarize(avg_tds = mean(REC_TD)) %&gt;%
-  arrange(desc(avg_tds)) %&gt;%
-  head(15)</code></pre>
-<pre><code>## # A tibble: 15 × 2
-##    Name             avg_tds
-##    &lt;chr&gt;              &lt;dbl&gt;
-##  1 Ja&#39;Marr Chase      13   
-##  2 Davante Adams      11.4 
-##  3 Tyreek Hill        10   
-##  4 DK Metcalf          9.67
-##  5 Mike Evans          9.6 
-##  6 DeAndre Hopkins     9   
-##  7 Adam Thielen        8.6 
-##  8 Justin Jefferson    8.5 
-##  9 Stefon Diggs        8.2 
-## 10 A.J. Brown          8   
-## 11 Cooper Kupp         8   
-## 12 Tyler Lockett       7.6 
-## 13 Marvin Jones Jr.    7.2 
-## 14 Amari Cooper        7   
-## 15 Calvin Ridley       7</code></pre>
+<div id="what-metrics-can-we-use-to-predict-undervalued-wide-receivers-in-fantasy-football" class="section level2">
+<h2>What metrics can we use to predict undervalued wide receivers in fantasy football?</h2>
+<p>The ultimate goal of building a successful fantasy roster is to find players who score the most points. Simple, right? It would be nice if it was that simple.</p>
+<p>One of the most essential keys to being successful in fantasy football is getting value from players who might be, for lack of a better word, undervalued. Look no further than the wide receiver position. Wide receivers are the best position to find players who can carry you to your fantasy championship.</p>
+<p>Take Cooper Kupp last season, for example. Kupp was drafted at an average draft position (ADP) of 51 last season which is equivalent to the 5th round, assuming the standard league size of 10. Kupp ended up having one of the most historic wide receiver seasons of all time, scoring a whopping 439.5 fantasy points last season. This was good for nearly 100 more points than the second leading scorer at the position. In simple terms, if you drafted Kupp in the 5th round last year, odds are decent that you had a pretty good fantasy season.</p>
+<p>Predicting fantasy performance is hard, plain and simple. But wouldn’t it be nice if we could have a chance at finding this year’s Cooper Kupp (okay, that might be a little unrealistic considering how historic his season was)? If the ultimate goal of fantasy football is to have players who score the most points, we should probably be looking at what statistics lead to points. This article aims to do just that.</p>
 </div>
-<div id="who-had-high-discrepencies-between-air-yards-and-points-scored-last-season" class="section level3">
-<h3>Who had high discrepencies between air yards and points scored last season?</h3>
-<pre class="r"><code>air_yds &lt;- fantasy_stats %&gt;%
-  filter(Season == &#39;2021&#39;) %&gt;%
-  left_join(advanced_wr_stats, by = &quot;ID&quot;) %&gt;%
-  filter(Season.y == &#39;2021&#39;, FPTS &gt;= 150) %&gt;%
-  select(Name.x, FPTS, TOT_AIR_YARDS)
-
-head(air_yds)</code></pre>
-<pre><code>##             Name.x   FPTS TOT_AIR_YARDS
-## 1      Cooper Kupp 439.50          1590
-## 2    Davante Adams 344.30          1520
-## 3     Deebo Samuel 338.96           971
-## 4 Justin Jefferson 330.40          1996
-## 5    Ja&#39;Marr Chase 304.60          1532
-## 6      Tyreek Hill 296.50          1709</code></pre>
-<pre class="r"><code>### Looking for lots of air yards but lower fantasy finishes
-air_yds[order(-air_yds$TOT_AIR_YARDS, air_yds$FPTS), ]</code></pre>
-<pre><code>##                 Name.x   FPTS TOT_AIR_YARDS
-## 4     Justin Jefferson 330.40          1996
-## 7         Stefon Diggs 285.50          1828
-## 6          Tyreek Hill 296.50          1709
-## 25      Terry McLaurin 213.50          1656
-## 18            DJ Moore 237.50          1632
-## 14          DK Metcalf 244.30          1605
-## 1          Cooper Kupp 439.50          1590
-## 44    Courtland Sutton 150.24          1534
-## 5        Ja&#39;Marr Chase 304.60          1532
-## 2        Davante Adams 344.30          1520
-## 22      Marquise Brown 226.30          1518
-## 30       DeVonta Smith 185.60          1487
-## 23      Darnell Mooney 219.70          1479
-## 16       Tyler Lockett 241.40          1459
-## 9           Mike Evans 262.50          1454
-## 20       Brandin Cooks 231.80          1428
-## 11        Keenan Allen 257.80          1404
-## 8      Diontae Johnson 274.40          1390
-## 12       Mike Williams 246.60          1376
-## 34    Marvin Jones Jr. 180.20          1354
-## 24         Tee Higgins 219.10          1300
-## 29       Jakobi Meyers 186.30          1211
-## 37      Chase Claypool 166.60          1203
-## 27        Amari Cooper 202.50          1185
-## 36       Van Jefferson 168.20          1182
-## 41          A.J. Green 156.80          1158
-## 26      Christian Kirk 207.62          1158
-## 32          A.J. Brown 180.90          1150
-## 17 Michael Pittman Jr. 238.60          1129
-## 19         CeeDee Lamb 232.80          1123
-## 43    Marquez Callaway 151.80          1059
-## 42         Tim Patrick 156.40          1003
-## 3         Deebo Samuel 338.96           971
-## 28        Adam Thielen 199.80           941
-## 15        Chris Godwin 242.40           898
-## 13       Jaylen Waddle 245.80           895
-## 40         K.J. Osborn 158.50           863
-## 38        Russell Gage 163.00           853
-## 10      Hunter Renfrow 259.10           851
-## 35       Brandon Aiyuk 170.30           806
-## 21   Amon-Ra St. Brown 227.30           806
-## 31          Tyler Boyd 183.84           690
-## 39        Cole Beasley 159.30           606
-## 33     Kendrick Bourne 180.50           585</code></pre>
-<p>Names that stand out here are Courtland Sutton(!!), Terry McLaurin, Marvin Jones Jr., DeVonta Smith, Darnell Mooney, Chase Claypool, Emmanuel Sanders. This would presumably point to wide receivers who are receiving a lot of targets in terms of yards but are not doing a great job of turnin them into fantasy points. High air yards with lower fantasy points could be a predictor of receivers that are due for positive regression</p>
-<pre class="r"><code>### What about high fantasy points with lower air yards?
-air_yds[order(-air_yds$FPTS, air_yds$TOT_AIR_YARDS), ]</code></pre>
-<pre><code>##                 Name.x   FPTS TOT_AIR_YARDS
-## 1          Cooper Kupp 439.50          1590
-## 2        Davante Adams 344.30          1520
-## 3         Deebo Samuel 338.96           971
-## 4     Justin Jefferson 330.40          1996
-## 5        Ja&#39;Marr Chase 304.60          1532
-## 6          Tyreek Hill 296.50          1709
-## 7         Stefon Diggs 285.50          1828
-## 8      Diontae Johnson 274.40          1390
-## 9           Mike Evans 262.50          1454
-## 10      Hunter Renfrow 259.10           851
-## 11        Keenan Allen 257.80          1404
-## 12       Mike Williams 246.60          1376
-## 13       Jaylen Waddle 245.80           895
-## 14          DK Metcalf 244.30          1605
-## 15        Chris Godwin 242.40           898
-## 16       Tyler Lockett 241.40          1459
-## 17 Michael Pittman Jr. 238.60          1129
-## 18            DJ Moore 237.50          1632
-## 19         CeeDee Lamb 232.80          1123
-## 20       Brandin Cooks 231.80          1428
-## 21   Amon-Ra St. Brown 227.30           806
-## 22      Marquise Brown 226.30          1518
-## 23      Darnell Mooney 219.70          1479
-## 24         Tee Higgins 219.10          1300
-## 25      Terry McLaurin 213.50          1656
-## 26      Christian Kirk 207.62          1158
-## 27        Amari Cooper 202.50          1185
-## 28        Adam Thielen 199.80           941
-## 29       Jakobi Meyers 186.30          1211
-## 30       DeVonta Smith 185.60          1487
-## 31          Tyler Boyd 183.84           690
-## 32          A.J. Brown 180.90          1150
-## 33     Kendrick Bourne 180.50           585
-## 34    Marvin Jones Jr. 180.20          1354
-## 35       Brandon Aiyuk 170.30           806
-## 36       Van Jefferson 168.20          1182
-## 37      Chase Claypool 166.60          1203
-## 38        Russell Gage 163.00           853
-## 39        Cole Beasley 159.30           606
-## 40         K.J. Osborn 158.50           863
-## 41          A.J. Green 156.80          1158
-## 42         Tim Patrick 156.40          1003
-## 43    Marquez Callaway 151.80          1059
-## 44    Courtland Sutton 150.24          1534</code></pre>
-<p>Deebo Samuel (unicorn), Hunter Renfrow, Jaylen Waddle, Chris Godwin, Amon-Ra St. Brown, Adam Thielen. This could indicate players who have a lot of shorter yard recpetions but not a lot of potential for explosive plays.</p>
+<div id="methodology" class="section level2">
+<h2>Methodology</h2>
+<p>Most of the fantasy football community is going to know that statistics like receptions, yards, and touchdowns directly correlate to fantasy points for receivers. With the evolution of data and statistics, however, many advanced statistics have gained popularity in the fantasy community to gauge performance. These include targets, air yards, average depth of target (aDOT), and so on. Wouldn’t it be interesting to see if these statistics that are talked about every day on ESPN are as important as they are made out to be?</p>
+<p>The second goal of this article is to take what we learn from valuable predictors of fantasy performance and use these predictors to find some receivers who are possibly being undervalued heading into the 2022 season. ‘Undervalued’ is going to be defined as wide receivers with an ADP outside of the top 24 receivers. The reasoning is that receivers who are being drafted as WR1’s and WR2’s (top 24) are already being counted on to produce for your team. We want to try to find players who people are not necessarily drafting to carry their team, but may have the ability to make a large impact.</p>
 </div>
-<div id="correlation-tests" class="section level3">
-<h3>Correlation tests</h3>
-<pre class="r"><code>fant_cor &lt;- fantasy_stats %&gt;%
-  select(-c(Season, Rk, ID, Name, Team, Pos))</code></pre>
-<pre class="r"><code>cor(fant_cor[ , colnames(fant_cor) != &quot;FPTS&quot;], fant_cor$FPTS)</code></pre>
-<pre><code>##               [,1]
-## GMS      0.6043627
-## TGTS     0.9754287
-## REC      0.9811909
-## PCT      0.3501815
-## REC_YDS  0.9893609
-## REC_TD   0.8966282
-## LNG      0.7080255
-## Y.T      0.3484224
-## Y.R      0.2999076
-## ATT      0.2445274
-## RUSH_YDS 0.2449762
-## AVG      0.1907561
-## RUSH_TD  0.1957423
-## FUM      0.2692696
-## LST      0.2568389
-## PPG      0.9465533</code></pre>
-<p>From standard fantasy statistics, Rec Yards, Rec, Targets, PPG and Rec Td’s are the most correlated metrics to scoring fantasy points</p>
+<div id="fantasy-point-predictions-using-linear-regression" class="section level2">
+<h2>Fantasy Point Predictions Using Linear Regression</h2>
+<p>Linear Regression is a common machine learning technique that can be used to investigate the relationship between a dependent variable and independent variables. It can be used to make predictions once these relationships are made.</p>
+<p>In our case, the dependent variable is going to be fantasy points scored. The independent variables (features) are comprised of many wide receiver football statistics. The goal of using our regression model is to 1. See if fantasy points can be accurately predicted and 2. Look at what features of the model are important in terms of predicting points.</p>
+<p>Before building the model, some data cleaning was necessary. Because we want to look at recent data, I decided it was best to use a dataset that had 2020 statistics combined with 2021 points. This is so 2020 statistics could be used in order to predict 2021 points for a baseline. From there, we can see how accurate the model was at predicting wide receiver fantasy points from the past season. We can also look at feature importance to get an idea of what we might want to use when looking at undervalued receivers for the upcoming season.</p>
+<p>The final dataset for the model contains data for 176 receivers from the 2020 season with their 2021 points attached. It is important to note that because we are looking at 2020 statistics, rookies from the 2021 season are excluded from the model (predicting rookie performance is a beast of its own). All other NA’s are also dropped so that we do not get data from players who played in one year and not the other. We will finally then be able to use this as a training dataset and predict 2022 points.</p>
 </div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>-<em>Model Results</em><br />
+The results from the model seem promising. When first evaluating the results, I thought that it might not have a lot of predicting power based on the r-squared value and root mean squared error (RMSE). The model contains an r-squared value of 0.41 with an RMSE of 71.5. In simple terms, it is not amazing at taking 2020 stats and predicting the 2021 points of wide receivers.</p>
+<p>If we look a little further, however, there are some promising takeaways. Although accuracy may not be there in terms of actual points, the model did a very good job at indicating receivers who finished in the top 24. It predicted 15 out of 24 receivers who finished in the top 24 correctly for a rate of 62.5%. This was a very positive finding from the model and I felt confident enough to move forward with 2022 predictions.</p>
+<p>-<em>Feature Importance</em><br />
+Remember when we wanted to look at whether the stats talking heads on ESPN use all the time? Enter feature importance. The feature importance from the model can tell us how important our variables are in predicting our dependent variable (fantasy points). The visual below gives us this breakdown.</p>
+<p>*** Insert variable importance chart here!</p>
+<p>The variables that the model chooses as most important include snap share (percentage of plays that the player is on the field), redzone targets (how many times the receiver is targeted inside the opponents 20 yard line), and PPG (fantasy points scored on a per game basis). These results should not be a huge surprise to anyone who has played fantasy before.</p>
+<p>The more interesting part was the lower half of the feature importance ratings. One metric that has gained a lot of popularity in fantasy in recent years is aDOT, a stat that measures how far down the field a receiver is targeted on average. It is said to be good at predicting future outcomes of receivers, but this analysis points to a different conclusion. Not only does aDOT have a very low feature importance in our model, but a simple scatter plot of aDOT vs fantasy points also shows that they do not appear to be correlated much at all.</p>
+<p>*** insert aDOT scatter plot</p>
+<p>It was also interesting to see total air yards toward the bottom of the feature importance chart. Like aDOT, air yards is another trendy fantasy statistic. Although total air yards is toward the bottom, air yards per game is toward the top. Additionally, a scatter plot also tells us that air yards seem to be correlated with fantasy points, therefore making it tough to make the same conclusions as aDOT.</p>
+<p>** insert air yards scatter</p>
+<p>Lastly, our more common statistics such as targets, target share, touchdowns, and redzone targets all seem to be both important in our model as well as direct correlation to fantasy points. This was to be expected all along and I would have been very surprised to find something else.</p>
+<p>Now, let’s get to the exciting part!</p>
 </div>
-<div id="touchdown-leaders-last-season" class="section level2">
-<h2>Touchdown leaders last season</h2>
-<pre class="r"><code>advanced_wr_stats %&gt;%
-  filter(Season == &#39;2021&#39;) %&gt;%
-  group_by(Name) %&gt;%
-  select(Name, TD) %&gt;%
-  arrange(desc(TD)) %&gt;%
-  head(10) %&gt;%
-ggplot(aes(reorder(Name, TD), TD)) +
-  geom_col(fill = &#39;lightblue&#39;) + 
-  coord_flip() +
-  theme_classic()</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<div id="values" class="section level2">
+<h2>2022 Values</h2>
+<p>As a reminder, we will be looking at wide receivers who are currently being drafted outside of the top 24 of the position. We will be trying to identify receivers who our linear model identifies as being a possible bargain for the upcoming season. Because the model also is not perfect, I will also look at receivers who could fit the mold of a value based on statistics that we have identified as important in this article.</p>
+<p>-<em>Hunter Renfrow</em> (Las Vegas Raiders)<br />
+After two years of finishing outside of the top 50 wide receivers, Renfrow exploded onto the scene to finish as WR10 last season. He had 128 targets, 103 receptions, and was on the field for 66% of the plays. He was also looked for near the goal line, racking up 24 redzone targets, which was tied for 6th in the league.</p>
+<p>He is currently going at an ADP of WR32 (78 overall). The reasoning seems pretty clear. Davante Adams (WR2 last year and one of the best receivers of the last 7 years) was recently traded from the Packers to the Raiders. Darren Waller was also out for a decent chunk of last year and will be healthy heading into the season. Long story short, it seems people think there may not be enough love to go around to support all three of them having great seasons.</p>
+<p>While our model does not account for team change, it still likes Renfrow a lot. It projects him as WR20. While it projects a drop off from his WR10 finish from a year ago, it still seems like you can get him at a relative bargain, currently approaching the 8th round of drafts.</p>
+<p>-<em>Christian Kirk</em> (Jacksonville Jaguars)<br />
+After being a former second round draft pick from Texas A&amp;M in 2018, Kirk has generally fallen short of his potential to this point in his career. Last year, however, he showed signs of promise, finishing as WR26. He was on the field for 73% of the plays, which was interestingly the lowest mark of his career. This means that he was very efficient with his opportunities.</p>
+<p>He left the Cardinals for the Jaguars this offseason, signing a huge multi-year contract. This shows that the Jaguars really trust his ability to be their featured wide receiver this year. Kirk has the potential to increase on his 103 targets from last season. While we would like to see him improve upon his 10 redzone targets, he is a receiver that seems to do more of his damage between the 20’s.</p>
+<p>The fantasy community still does not seem to be fully sold on Kirk, as he is going at an ADP of WR43 (103 overall). The model has him projected at WR18. Kirk seems like a decent bet to beat his current ADP and someone worth taking a chance on.</p>
+<p>-<em>Jakobi Meyers</em> (New England Patriots)<br />
+Like Renfrow, Meyers is another player who broke out last season to finish WR29 after previous finishes of WR53 and WR98. He had 126 targets and 83 receptions. He only had 2 touchdowns, but it seems that may have been a little bit unlucky. Of receivers who had at least 120 targets last season, he was the only receiver with less than 4 touchdowns, with the average touchdowns for receivers with that many targets being 7.68. If he would have hit that average mark, that alone would have boosted him to WR23. Furthermore, he also had 13 redzone targets. Only 3 other wide receivers reached this benchmark and scored 2 touchdowns or less, with the average being 6.7, a similar trend to what we saw above.</p>
+<p>Meyers is currently being drafted as WR56 (137 overall). This is simply way too low. It seems that people are scared of the arrival of DaVante Parker from Miami. While extremely talented, Parker has been a relative disappointment throughout his career so far while also having trouble staying healthy. He has averaged only 13.2 games per year since coming into the league in 2015 and only played in every game only once. He also only has one finish inside the top 40 at the position.</p>
+<p>The model has Meyers at WR27, a huge difference between the consensus ratings. You should be getting a bargain drafting Meyers at his current position.</p>
+<p>-<em>Kendrick Bourne</em> (New England Patriots)<br />
+You mean another Patriots position player who no one else saw value in and then has immediate success when they bring him in? The Patriots have made a legacy of making formerly underappreciated players shine in their system (Wes Welker, Julian Edelman, Chris Hogan), just to name a few. Enter Kendrick Bourne as the next.</p>
+<p>After four seasons in San Francisco of never finishing higher than WR60, Bourne finished as WR33 last season. There are a couple of fascinating factors to look at with Bourne’s season from a year ago. First, he finished this high while only playing 52.2(!!!)% of snaps. Since 2017, there has never been another wide receiver to finish in the top 35 with fewer than even 60% of snaps played! Chase Claypool was the next lowest at 60.8% in 2020. Looking at the same time frame, there has only been one instance of a wide receiver finishing top 35 and having less than the 70 targets that he received last season. So what does this mean for next year?</p>
+<p>You could look at it two ways. The first is to say that he was being way too efficient with his opportunities and this production is unsustainable. Through the other lense, you could argue that the Patriots are on the verge of unlocking a beast. I want to take that side. In other words, please get this man on the field more Mr. Belichick!</p>
+<p>Bourne is currently going as WR82(!) (245 overall). That is approaching the borderline undrafted area, which is crazy to me for someone who finished as WR33 a year ago. The model has him projected as WR19 for this season, and I truly think there is a path there. The worst that can happen is you are selecting someone with one of your last picks, but this could be a true diamond in the rough situation.</p>
+<p>-<em>KJ Osborn</em> (Minnesota Vikings)<br />
+While the spotlight has been deservedly on Justin Jefferson and Adam Thielen for many years in Minnesota, Osborn should be another WR to keep an eye on this season. Jefferson has arguably turned into the best receiver in football and Thielen has been great for years, but Osborn saw an expanded role in his second NFL season last year while finishing WR40.</p>
+<p>Osborn likely will not turn into a wide receiver that is going to carry your team. But there is still value with him currently being drafted at WR79 (229 overall). Opposing defenses are going to be focused on not letting Jefferson be the one to beat them, and Thielen is 32 this year and showed minor signs of decline last season. Osborn is heading into year three which could be a crucial year to prove his talent in the league.</p>
+<p>I think there is a path for him to surpass the 82 targets and 67.5% snap share he had from a year ago. The model also likes him to finish at WR37, a few spots higher than what he finished last season. Like Bourne, he is going in the final rounds of drafts right now. And while he may not have as much upside as Bourne, he is certainly worth a late round draft pick.</p>
+</div>
+<div id="closing-thoughts" class="section level2">
+<h2>Closing Thoughts</h2>
+<p>This blog post is a fun start for trying to predict future wide receiver performance. While the model performance is not perfect, I am happy with the point it is at right now. This will be a fun project to build on in the future and hopefully tune the model to predict the actual points in a more accurate manner. I hope you enjoyed reading and took something positive away from the analysis. Good luck in your fantasy seasons!</p>
 </div>

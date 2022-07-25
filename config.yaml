@@ -40,4 +40,4 @@ markup:
   defaultMarkdownHandler: goldmark
   goldmark:
     renderer:
-      unsafe: yes
+      unsafe: true

@@ -38,6 +38,7 @@ library(tidyverse)
 library(readr)
 library(readxl)
 library(blogdown)
+library(caret)
 ```
 
 ## Importing main datasets
@@ -104,34 +105,466 @@ fant_cor <- fantasy_stats %>%
 cor(fant_cor[ , colnames(fant_cor) != "FPTS"], fant_cor$FPTS)
 ```
 
-From standard fantasy statistics, Rec Yards, Rec, Targets, PPG and Rec Td's are the most correlated metrics to scoring fantasy points
+From standard fantasy statistics, Rec Yards, Rec, Targets, PPG and Rec Td's are the most correlated metrics to scoring fantasy points. I want to look at targets specifically and the role they play on correlating to fantasy points
 
-## Touchdown leaders last season
+## Average WR fantasy points by season
+```{r}
+fantasy_stats %>%
+  filter(Rk <= 40) %>%
+  group_by(Season) %>%
+  summarise(avg_points = mean(FPTS))
+```
+
+
+
+```{r}
+library(caret)
+```
+
+```{r}
+mod_stats <- fantasy_stats %>%
+  select(-c(Season, Rk, ID, Team, Pos, Name, REC, FPTS))
+
+head(mod_stats)
+```
+
+```{r}
+pts_index <- createDataPartition(mod_stats$TGTS, p = 0.8, list = FALSE)
+train <- mod_stats[ pts_index, ]
+test <- mod_stats[-pts_index, ]
+
+control <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
+```
+
+```{r}
+model <- train(TGTS ~.,
+               data = train,
+               method = "lm",
+               trControl = control)
+```
+
+```{r}
+model
+```
+
+```{r}
+pred <- predict(model, mod_stats)
+pred
+```
+
+
+```{r}
+cbind(fantasy_stats, pred) %>%
+  select(Name, TGTS, pred)
+```
+
+```{r}
+importance <- varImp(model, scale = TRUE)
+plot(importance)
+```
+
+```{r}
+fantasy_stats %>%
+  summarise(cor_tgts = cor(TGTS, FPTS))
+```
+
+## Relationship between targets and fantasy points, scatterplot
+
+```{r}
+fantasy_stats %>%
+  ggplot(aes(FPTS, TGTS)) +
+  geom_point(alpha = 0.2, color = "blue") +
+  geom_smooth() +
+  theme_classic()
+```
+
+We can see that there is a strong linear relationship between wide receiver targets and fantasy points scored. We should be able to use targets as a solid prediction metric for fantasy points scored for receivers.
+
+
+## What dictates being a WR1 or WR2?
+
+```{r}
+## Breaking dataset down to top 24 WRs
+fantasy_stats %>%
+  filter(Rk <= 24) %>%
+  group_by(Pos) %>%
+  summarize(avg_targets = mean(TGTS))
+```
+Over the past 5 seasons, WR1 and WR2s average ~134 targets per season
+
+
+```{r}
+top_24 %>%
+  group_by(Season) %>%
+  summarise(avg_pts = mean(FPTS))
+```
+
+```{r}
+## Breaking targets down into different buckets to see proportion
+top_24 <- fantasy_stats %>%
+  filter(Rk <= 24) %>%
+  mutate(TGT_buckets = case_when(TGTS < 120 ~ "low",
+            TGTS >= 120 & TGTS < 150 ~ "middle",
+            TGTS >= 150 ~ "leaders"
+             ))
+```
+
+```{r}
+top_24 <- top_24 %>%
+  mutate(TGT_numeric = case_when(TGTS < 120 ~ "0",
+            TGTS >= 120 & TGTS < 150 ~ "1",
+            TGTS >= 150 ~ "2"
+             )) 
+  
+```
+
+```{r}
+top_24$TGT_numeric <- as.numeric(top_24$TGT_numeric)
+```
+
+## Based on our buckets, what is the breakdown of receivers finishing in the top 24 who are in each bucket?
+```{r}
+top_24 %>%
+  group_by(TGT_buckets) %>%
+  summarise(cnt = n()) %>%
+  mutate(freq = cnt/sum(cnt)*100)
+```
+
+In our sample of 168 top 24 receivers dating back to 2015, 26.1% have 150 or more targets, 45.2% have greater than 120 but less than 150 targets, and 28.5% have less than 120 targets. The largest proportion of this breakdown shows that receivers who are hitting the mark of 120 targets are very likely to finish as a top 24 wide receiver. 
+
+```{r}
+fantasy_stats %>%
+  filter(TGTS <= 134)
+```
+
+```{r}
+fantasy_stats %>%
+  filter(Rk == 24)
+```
+
+
+
+
+## Filtering for 2020 stats with 2021 points
+
+```{r}
+fantasy_21 <- fantasy_stats %>%
+  filter(Season == '2021')
+
+fantasy_21
+```
+
+```{r}
+fantasy_20 <- fantasy_stats %>%
+  filter(Season == '2020')
+
+fantasy_20
+  
+```
+
+```{r}
+## Dataset with 2020 stats and 2021 points. Use this to predict points and compare to actual 2021 points
+fant_20_21 <- fantasy_20 %>%
+  select(-FPTS) %>%
+  left_join(fantasy_21, by = "ID") %>%
+  select(-c(Season.y, Rk.y, Name.y, Team.y, Pos.y, GMS.y, TGTS.y, REC.y, PCT.y, REC_YDS.y, REC_TD.y, LNG.y, Y.T.y, Y.R.y, ATT.y, RUSH_YDS.y, AVG.y, RUSH_TD.y, FUM.y, LST.y, PPG.y)) %>%
+  drop_na()
+
+fant_20_21
+```
+
+```{r}
+model_data <- fant_20_21 %>%
+  select(-c(ID, Rk.x, Name.x, Team.x, Pos.x))
+
+model_data
+```
+
+```{r}
+model_21 <- train(FPTS ~ .,
+                  data = model_data,
+                  method = "lm",
+                  trControl = control)
+model_21
+```
+
+
+```{r}
+fant_pred <- predict(model_21, fant_20_21)
+
+fant_pred
+```
+
+```{r}
+cbind(fant_20_21, fant_pred) %>%
+  select(Name.x, FPTS, fant_pred)
+```
+```{r}
+var_importantce <- varImp(model_21, scale = TRUE)
+
+plot(var_importantce)
+```
+```{r}
+head(advanced_wr_stats)
+```
+
+```{r}
+adv_20 <- advanced_wr_stats %>%
+  filter(Season == '2020') %>%
+  select(-c(Season, Rk, Name, TGTS, REC, YDS, TD))
+
+adv_20
+```
+
+```{r}
+combined_20_21 <- fant_20_21 %>%
+  left_join(adv_20, by = "ID") %>%
+  drop_na()
+
+combined_20_21
+```
+
+```{r}
+mod_comb_data <- combined_20_21 %>%
+  select(-c(Rk.x, ID, Name.x, Team.x, Pos.x, TOT_TGTS, ATT.x, RUSH_YDS.x, AVG.x, FUM.x, LST.x)) %>%
+  drop_na()
+
+mod_comb_data
+```
+
+```{r}
+mod_combined <- train(FPTS ~ .,
+                      data = mod_comb_data,
+                      method = "lm",
+                      trControl = control
+                      )
+mod_combined
+```
+
+```{r}
+pred_2 <- predict(mod_combined, combined_20_21)
+```
+
+
+```{r}
+cbind(combined_20_21, pred_2) %>%
+  select(Name.x, FPTS, pred_2) %>%
+  arrange(desc(pred_2)) %>%
+  head(24)
+```
+
+```{r}
+cbind(combined_20_21, pred_2) %>%
+  select(Name.x, FPTS, pred_2) %>%
+  arrange(desc(FPTS)) %>%
+  head(24)
+```
+```{r}
+cbind(combined_20_21, pred_2) %>%
+  select(Name.x, FPTS, pred_2)
+```
+
+
+```{r}
+importantce <- varImp(mod_combined, scale = TRUE)
+
+plot(importantce)
+```
+
+
+## Predicting 2022
+
+```{r}
+fant_22 <- fantasy_21 %>%
+  rename(Season.x = "Season", Name.x = "Name", Team.x = "Team", Pos.x = "Pos", GMS.x = "GMS", TGTS.x = "TGTS",
+         REC.x = "REC", PCT.x = "PCT", REC_YDS.x = "REC_YDS", REC_TD.x = "REC_TD", LNG.x = "LNG",
+         Y.T.x = "Y.T", Y.R.x = "Y.R", ATT.x = "ATT", RUSH_YDS.x = "RUSH_YDS", AVG.x = "AVG",
+         RUSH_TD.x = "RUSH_TD", FUM.x = "FUM", LST.x = "LST", PPG.x = "PPG")
+
+fant_22
+```
+
+```{r}
+fant_22_mod <- fant_22 %>%
+  select(-c(ID, Rk, Name.x, Team.x, Pos.x))
+
+```
+
+```{r}
+fant_22_mod
+```
+
+```{r}
+pred_2022 <- predict(model_21, fant_22_mod)
+```
+
+```{r}
+pred_2022
+```
+
+
+```{r}
+cbind(fant_22, pred_2022) %>%
+  select(Name.x, FPTS, pred_2022) %>%
+  arrange(desc(pred_2022))
+```
+
+```{r}
+adv_21 <- advanced_wr_stats %>%
+  filter(Season == '2021') %>%
+  select(-c(Season, Rk, Name, TGTS, REC, YDS, TD))
+
+adv_21
+```
+
+```{r}
+combined_22 <- fant_22 %>%
+  left_join(adv_21, by = "ID") %>%
+  drop_na()
+
+#combined_20_21 <- fant_20_21 %>%
+  #left_join(adv_20, by = "ID") %>%
+  #drop_na()
+```
+
+```{r}
+combined_22
+```
+```{r}
+combined_22_mod <- combined_22 %>%
+   select(-c(ID, Rk, Name.x, Team.x, Pos.x, TOT_TGTS, ATT.x, RUSH_YDS.x, AVG.x, FUM.x, LST.x))
+
+combined_22_mod
+```
+
+
+```{r}
+pred_22 <- predict(mod_combined, combined_22)
+```
+
+```{r}
+pred_22
+```
+
+```{r}
+cbind(combined_22, pred_22) %>%
+  select(Name.x, FPTS, pred_22) %>%
+  mutate(pts_22 = FPTS + pred_22) %>%
+  arrange(desc(pts_22))
+```
+
+
+## Analysis for value receivers
 
 ```{r}
 advanced_wr_stats %>%
   filter(Season == '2021') %>%
-  group_by(Name) %>%
-  select(Name, TD) %>%
+  select(Name, Redzone_Tgts) %>%
+  arrange(desc(Redzone_Tgts))
+```
+
+```{r}
+advanced_wr_stats %>%
+  filter(Name == "H. Renfrow")
+```
+
+```{r}
+advanced_wr_stats %>%
+  filter(Name == "C. Kirk")
+```
+  
+```{r}
+advanced_wr_stats %>%
+  filter(Name == "J. Meyers")
+```
+```{r}
+advanced_wr_stats %>%
+  filter(Redzone_Tgts >= 13 & Season == 2021) %>%
+  select(Name, Redzone_Tgts, TD) %>% 
+  arrange(Redzone_Tgts) %>%
+  mutate(avg = mean(TD))
+```
+```{r}
+advanced_wr_stats %>%
+  filter(TOT_TGTS >= 120 & Season == 2021) %>%
+  select(Name, TOT_TGTS, TD) %>%
   arrange(desc(TD)) %>%
-  head(10) %>%
-ggplot(aes(reorder(Name, TD), TD)) +
-  geom_col(fill = 'lightblue') + 
-  coord_flip() +
-  theme_classic()
+  mutate(avg = mean(TD))
 ```
-
-## Blogdown
-
 ```{r}
-library(blogdown)
+fantasy_stats %>%
+  filter(Name == "DeVante Parker") #%>%
+  #summarise(avg_games = mean(GMS))
 ```
 
 ```{r}
-new_site(theme = "https://github.com/cbails22/Investigating-Fantasy-Football-Success-For-Wide-Receivers")
+fantasy_stats %>%
+  filter(Name == "Kendrick Bourne")
+
+advanced_wr_stats %>%
+  filter(Name == "K. Bourne")
 ```
 
 ```{r}
-blogdown::new_site()
+advanced_wr_stats %>%
+  filter(Rk >=1 & Rk <= 35)%>%
+  select(Rk, Name, SNAP_SHARE) %>%
+  arrange(SNAP_SHARE)
+```
+```{r}
+advanced_wr_stats %>%
+  filter(Rk >=1 & Rk <= 35)%>%
+  select(Season, Rk, Name, TGTS) %>%
+  arrange(TGTS)
+```
+
+```{r}
+advanced_wr_stats %>%
+  filter(Name == "K. Osborn")
+```
+
+## Decision Tree 
+
+```{r}
+mod_dec_tree <- train(FPTS ~ .,
+                      data = mod_comb_data,
+                      method = "rf",
+                      trControl = control
+                      )
+mod_combined
+```
+
+```{r}
+cor(fant_cor[ , colnames(fant_cor) != "FPTS"], fant_cor$FPTS)
+```
+
+
+```{r}
+cor(mod_comb_data[, colnames(mod_comb_data) != "FPTS"], mod_comb_data$FPTS)
+```
+
+```{r}
+mod_comb_data %>%
+  ggplot(aes(AVG_TGT_DIST, FPTS)) +
+  geom_point(color = "blue") +
+  labs(x = "aDOT",
+       y = "Fantasy Points",
+       title = "Fantasy Points vs aDOT") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+combined_22 %>%
+  ggplot(aes(TOT_AIR_YARDS, FPTS)) +
+  geom_point(color = "blue") +
+   labs(x = "Air Yards",
+       y = "Fantasy Points",
+       title = "Fantasy Points vs Air Yards") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+```{r}
+head(mod_comb_data)
 ```
 
