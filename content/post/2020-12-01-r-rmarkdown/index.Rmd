@@ -13,9 +13,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The ultimate goal of building a successful fantasy roster is to find players who score the most points. Simple, right? It would be nice if it was that simple.
 
-One of the most essential keys to being successful in fantasy football is getting value from players who might be, for lack of a better word, undervalued. Look no further than the wide receiver position. Wide receivers are the best position to find players who can carry you to your fantasy championship. 
+A key to being successful in fantasy football is getting value from players who might be, for lack of a better word, undervalued. Look no further than the wide receiver position. Wide receivers are the best position to find players who can carry you to your fantasy championship. 
 
-Take Cooper Kupp last season, for example. Kupp was drafted at an average draft position (ADP) of 51 last season which is equivalent to the 5th round, assuming the standard league size of 10. Kupp ended up having one of the most historic wide receiver seasons of all time, scoring a whopping 439.5 fantasy points last season. This was good for nearly 100 more points than the second leading scorer at the position. In simple terms, if you drafted Kupp in the 5th round last year, odds are decent that you had a pretty good fantasy season. 
+Take Cooper Kupp last season, for example. Kupp was drafted at an average draft position (ADP) of 51 last season which is equivalent to the 5th round, assuming the standard league size of 10. Kupp ended up having the best fantasy season by a wide receiver of all time, scoring a ridiculous 439.5 fantasy points last season. This was good for nearly 100 more points than the second leading scorer at the position and outscored the previous all time best finish by 51 points. In simple terms, if you drafted Kupp in the 5th round last year, odds are decent that you had a pretty good fantasy season. 
+
+![](images/cooper_kupp.jpeg)
+
+The point is, everybody is going to be counting on Kupp, Justin Jefferson, Jamarr Chase, and Davante Adams to anchor their teams this season. But most people probably aren't counting on Hunter Renfrow, Christian Kirk, Jakobi Meyers, Kendrick Bourne, and KJ Osborn (spoiler alert, these are the WRs that will be talked about in a bit).
 
 Predicting fantasy performance is hard, plain and simple. But wouldn’t it be nice if we could have a chance at finding this year’s Cooper Kupp (okay, that might be a little unrealistic considering how historic his season was)? If the ultimate goal of fantasy football is to have players who score the most points, we should probably be looking at what statistics lead to points. This article aims to do just that. 
 
