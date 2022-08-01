@@ -65,8 +65,6 @@ The more interesting part was the lower half of the feature importance ratings. 
 
 It was also interesting to see total air yards toward the bottom of the feature importance chart. Like aDOT, air yards is another trendy fantasy statistic. Although total air yards is toward the bottom, air yards per game is toward the top. Additionally, a scatter plot also tells us that air yards seem to be correlated with fantasy points, therefore making it tough to make the same conclusions as aDOT. 
 
-** insert air yards scatter
-
 ![](images/fpts_airyards.png)
 
 Lastly, our more common statistics such as targets, target share, touchdowns, and redzone targets all seem to be both important in our model as well as have direct correlation to fantasy points. This was to be expected all along and I would have been very surprised to find something else. 
