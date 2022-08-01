@@ -27,7 +27,7 @@ The point is, everybody is going to be counting on receivers like Kupp, Justin J
 
 Predicting fantasy performance is hard, plain and simple. But wouldn’t it be nice if we could have a chance at finding this year’s Cooper Kupp (okay, that might be a little unrealistic considering how historic his season was)? If the ultimate goal of fantasy football is to have players who score the most points, we should also probably be looking at what statistics lead to points to then use for our predictions. This article aims to do just that. 
 
-## Methodology
+## Where we're going
 
 Most of the fantasy football community is going to know that statistics like receptions, yards, and touchdowns directly correlate to fantasy points for receivers. With the evolution of data and statistics, however, many advanced statistics have gained popularity in the fantasy community to gauge performance. These include targets, air yards, average depth of target (aDOT), and so on. Wouldn’t it be interesting to see if these statistics that are talked about every day on ESPN are as important as they are made out to be?
 
@@ -44,7 +44,7 @@ Before building the model, some data cleaning was necessary. Because we want to 
 
 The final dataset for the model contains data for 176 receivers from the 2020 season with their 2021 points attached. It is important to note that because we are looking at 2020 statistics, rookies from the 2021 season are excluded from the model (predicting rookie performance is a beast of its own). All other NA’s are also dropped so that we do not get data from players who played in one year and not the other. We will finally then be able to use this as a training dataset and predict 2022 points. 
 
-## Results
+## How are we looking?
 
 -*Model Results*  
 The results from the model seem promising. When first evaluating the results, I thought that it might not have a lot of predicting power based on the r-squared value and root mean squared error (RMSE). The model contains an r-squared value of 0.41 with an RMSE of 71.5. In simple terms, it is not amazing at taking 2020 stats and predicting the actual 2021 points of wide receivers. 
