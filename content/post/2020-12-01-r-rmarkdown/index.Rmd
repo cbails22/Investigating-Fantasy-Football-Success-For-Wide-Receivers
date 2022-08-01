@@ -1,13 +1,17 @@
 ---
 title: "Wide Receiver Projections in Fantasy Football"
-output: html_document
-date: '2022-07-21'
+author: "Connor Bailey" 
+output:
+  pdf_document: default
+  html_document: default
+date: '2022-07-22'
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+![](images/fantasy.jpeg){width=100%}
 
 ## What metrics can we use to predict undervalued wide receivers in fantasy football?
 
@@ -17,11 +21,11 @@ A key to being successful in fantasy football is getting value from players who 
 
 Take Cooper Kupp last season, for example. Kupp was drafted at an average draft position (ADP) of 51 last season which is equivalent to the 5th round, assuming the standard league size of 10. Kupp ended up having the best fantasy season by a wide receiver of all time, scoring a ridiculous 439.5 fantasy points last season. This was good for nearly 100 more points than the second leading scorer at the position and outscored the previous all time best finish by 51 points. In simple terms, if you drafted Kupp in the 5th round last year, odds are decent that you had a pretty good fantasy season. 
 
-![](images/cooper_kupp.jpeg)
+![](images/kupp.png){width=100%}
 
-The point is, everybody is going to be counting on Kupp, Justin Jefferson, Jamarr Chase, and Davante Adams to anchor their teams this season. But most people probably aren't counting on Hunter Renfrow, Christian Kirk, Jakobi Meyers, Kendrick Bourne, and KJ Osborn (spoiler alert, these are the WRs that will be talked about in a bit).
+The point is, everybody is going to be counting on receivers like Kupp, Justin Jefferson, Ja'Marr Chase, and Davante Adams to anchor their teams this season. But most people probably aren't counting on Hunter Renfrow, Christian Kirk, Jakobi Meyers, Kendrick Bourne, and KJ Osborn (spoiler alert, these are the WRs that will be talked about in a bit).
 
-Predicting fantasy performance is hard, plain and simple. But wouldn’t it be nice if we could have a chance at finding this year’s Cooper Kupp (okay, that might be a little unrealistic considering how historic his season was)? If the ultimate goal of fantasy football is to have players who score the most points, we should probably be looking at what statistics lead to points. This article aims to do just that. 
+Predicting fantasy performance is hard, plain and simple. But wouldn’t it be nice if we could have a chance at finding this year’s Cooper Kupp (okay, that might be a little unrealistic considering how historic his season was)? If the ultimate goal of fantasy football is to have players who score the most points, we should also probably be looking at what statistics lead to points to then use for our predictions. This article aims to do just that. 
 
 ## Methodology
 
@@ -43,71 +47,82 @@ The final dataset for the model contains data for 176 receivers from the 2020 se
 ## Results
 
 -*Model Results*  
-The results from the model seem promising. When first evaluating the results, I thought that it might not have a lot of predicting power based on the r-squared value and root mean squared error (RMSE). The model contains an r-squared value of 0.41 with an RMSE of 71.5. In simple terms, it is not amazing at taking 2020 stats and predicting the 2021 points of wide receivers. 
+The results from the model seem promising. When first evaluating the results, I thought that it might not have a lot of predicting power based on the r-squared value and root mean squared error (RMSE). The model contains an r-squared value of 0.41 with an RMSE of 71.5. In simple terms, it is not amazing at taking 2020 stats and predicting the actual 2021 points of wide receivers. 
 
-If we look a little further, however, there are some promising takeaways. Although accuracy may not be there in terms of actual points, the model did a very good job at indicating receivers who finished in the top 24. It predicted 15 out of 24 receivers who finished in the top 24 correctly for a rate of 62.5%. This was a very positive finding from the model and I felt confident enough to move forward with 2022 predictions. 
+If we look a little further, however, there are some promising takeaways. Although accuracy may not be there in terms of actual points, the model did a  good job at indicating receivers who finished in the top 24. It predicted 15 out of 24 receivers who finished in the top 24 correctly for a rate of 62.5%. Of the 9 who did not finish in the top 24, 5 of them had injuries and missed a good amount of games. In the sports world, if you are predicting anything above a 60% clip you are doing pretty well. This was a very positive finding from the model and I felt confident enough to move forward with 2022 predictions. 
 
 -*Feature Importance*  
-Remember when we wanted to look at whether the stats talking heads on ESPN use all the time? Enter feature importance. The feature importance from the model can tell us how important our variables are in predicting our dependent variable (fantasy points). The visual below gives us this breakdown. 
+Remember when we wanted to look at whether the stats the talking heads on ESPN use all the time are actually valid? Enter feature importance. The feature importance from the model can tell us how important our variables are in predicting our dependent variable (fantasy points). The visual below gives us this breakdown. 
 
-*** Insert variable importance chart here!
 
-```{r}
-plot(importantce)
-```
-
+![](images/var_importance.png)
 
 The variables that the model chooses as most important include snap share (percentage of plays that the player is on the field), redzone targets (how many times the receiver is targeted inside the opponents 20 yard line), and PPG (fantasy points scored on a per game basis). These results should not be a huge surprise to anyone who has played fantasy before. 
 
 The more interesting part was the lower half of the feature importance ratings. One metric that has gained a lot of popularity in fantasy in recent years is aDOT, a stat that measures how far down the field a receiver is targeted on average. It is said to be good at predicting future outcomes of receivers, but this analysis points to a different conclusion. Not only does aDOT have a very low feature importance in our model, but a simple scatter plot of aDOT vs fantasy points also shows that they do not appear to be correlated much at all. 
 
-*** insert aDOT scatter plot
-
+![](images/fpts_adot.png)
 
 It was also interesting to see total air yards toward the bottom of the feature importance chart. Like aDOT, air yards is another trendy fantasy statistic. Although total air yards is toward the bottom, air yards per game is toward the top. Additionally, a scatter plot also tells us that air yards seem to be correlated with fantasy points, therefore making it tough to make the same conclusions as aDOT. 
 
 ** insert air yards scatter
 
+![](images/fpts_airyards.png)
 
-Lastly, our more common statistics such as targets, target share, touchdowns, and redzone targets all seem to be both important in our model as well as direct correlation to fantasy points. This was to be expected all along and I would have been very surprised to find something else. 
+Lastly, our more common statistics such as targets, target share, touchdowns, and redzone targets all seem to be both important in our model as well as have direct correlation to fantasy points. This was to be expected all along and I would have been very surprised to find something else. 
 
 Now, let’s get to the exciting part!
 
-## 2022 Values
+## 2022 Wide Receiver Values
 
 As a reminder, we will be looking at wide receivers who are currently being drafted outside of the top 24 of the position. We will be trying to identify receivers who our linear model identifies as being a possible bargain for the upcoming season. Because the model also is not perfect, I will also look at receivers who could fit the mold of a value based on statistics that we have identified as important in this article. 
 
--*Hunter Renfrow* (Las Vegas Raiders)  
+### Hunter Renfrow (Las Vegas Raiders)      
+
+![](images/raiders.png){width=25% height=100px}</center>  
+
 After two years of finishing outside of the top 50 wide receivers, Renfrow exploded onto the scene to finish as WR10 last season. He had 128 targets, 103 receptions, and was on the field for 66% of the plays. He was also looked for near the goal line, racking up 24 redzone targets, which was tied for 6th in the league. 
 
 He is currently going at an ADP of WR32 (78 overall). The reasoning seems pretty clear. Davante Adams (WR2 last year and one of the best receivers of the last 7 years) was recently traded from the Packers to the Raiders. Darren Waller was also out for a decent chunk of last year and will be healthy heading into the season. Long story short, it seems people think there may not be enough love to go around to support all three of them having great seasons. 
 
 While our model does not account for team change, it still likes Renfrow a lot. It projects him as WR20. While it projects a drop off from his WR10 finish from a year ago, it still seems like you can get him at a relative bargain, currently approaching the 8th round of drafts.
 
--*Christian Kirk* (Jacksonville Jaguars)  
+### Christian Kirk (Jacksonville Jaguars)    
+
+![](images/jaguars.png){width=20% height=100px}
+
 After being a former second round draft pick from Texas A&M in 2018, Kirk has generally fallen short of his potential to this point in his career. Last year, however, he showed signs of promise, finishing as WR26. He was on the field for 73% of the plays, which was interestingly the lowest mark of his career. This means that he was very efficient with his opportunities. 
 
 He left the Cardinals for the Jaguars this offseason, signing a huge multi-year contract. This shows that the Jaguars really trust his ability to be their featured wide receiver this year. Kirk has the potential to increase on his 103 targets from last season. While we would like to see him improve upon his 10 redzone targets, he is a receiver that seems to do more of his damage between the 20’s. 
 
-The fantasy community still does not seem to be fully sold on Kirk, as he is going at an ADP of WR43 (103 overall). The model has him projected at WR18. Kirk seems like a decent bet to beat his current ADP and someone worth taking a chance on. 
+The fantasy community still does not seem to be fully sold on Kirk, as he is going at an ADP of WR43 (103 overall). The model has him projected at WR18. Kirk seems like a good bet to beat his current ADP and someone worth taking a chance on. 
 
--*Jakobi Meyers* (New England Patriots)  
+### Jakobi Meyers (New England Patriots)  
+
+![](images/pats.png){width=20% height=100px}  
+
 Like Renfrow, Meyers is another player who broke out last season to finish WR29 after previous finishes of WR53 and WR98. He had 126 targets and 83 receptions. He only had 2 touchdowns, but it seems that may have been a little bit unlucky. Of receivers who had at least 120 targets last season, he was the only receiver with less than 4 touchdowns, with the average touchdowns for receivers with that many targets being 7.68. If he would have hit that average mark, that alone would have boosted him to WR23. Furthermore, he also had 13 redzone targets. Only 3 other wide receivers reached this benchmark and scored 2 touchdowns or less, with the average being 6.7, a similar trend to what we saw above. 
 
 Meyers is currently being drafted as WR56 (137 overall). This is simply way too low. It seems that people are scared of the arrival of DaVante Parker from Miami. While extremely talented, Parker has been a relative disappointment throughout his career so far while also having trouble staying healthy. He has averaged only 13.2 games per year since coming into the league in 2015 and only played in every game only once. He also only has one finish inside the top 40 at the position.
 
 The model has Meyers at WR27, a huge difference between the consensus ratings. You should be getting a bargain drafting Meyers at his current position. 
 
--*Kendrick Bourne* (New England Patriots)  
-You mean another Patriots position player who no one else saw value in and then has immediate success when they bring him in? The Patriots have made a legacy of making formerly underappreciated players shine in their system (Wes Welker, Julian Edelman, Chris Hogan), just to name a few. Enter Kendrick Bourne as the next.
+### Kendrick Bourne (New England Patriots)    
+
+![](images/pats.png){width=20% height=100px}  
+
+You mean another Patriots position player who no one else saw value in and then has immediate success when they bring him in? The Patriots have made a legacy of making formerly under-appreciated players shine in their system (Wes Welker, Julian Edelman, Chris Hogan), just to name a few. Enter Kendrick Bourne as the next.
 
 After four seasons in San Francisco of never finishing higher than WR60, Bourne finished as WR33 last season. There are a couple of fascinating factors to look at with Bourne’s season from a year ago. First, he finished this high while only playing 52.2(!!!)% of snaps. Since 2017, there has never been another wide receiver to finish in the top 35 with fewer than even 60% of snaps played! Chase Claypool was the next lowest at 60.8% in 2020. Looking at the same time frame, there has only been one instance of a wide receiver finishing top 35 and having less than the 70 targets that he received last season. So what does this mean for next year?
 
 You could look at it two ways. The first is to say that he was being way too efficient with his opportunities and this production is unsustainable. Through the other lense, you could argue that the Patriots are on the verge of unlocking a beast. I want to take that side. In other words, please get this man on the field more Mr. Belichick! 
 
-Bourne is currently going as WR82(!) (245 overall). That is approaching the borderline undrafted area, which is crazy to me for someone who finished as WR33 a year ago. The model has him projected as WR19 for this season, and I truly think there is a path there. The worst that can happen is you are selecting someone with one of your last picks, but this could be a true diamond in the rough situation.
+Bourne is currently going as WR82(!) (245 overall). That is approaching the borderline undrafted area, which is crazy to me for someone who finished as WR33 a year ago. The model has him projected as WR19 for this season, and I truly think there is a path there. The worst that can happen is you are selecting someone with one of your last picks and he plays like one, but this could be a true diamond in the rough situation.
 
--*KJ Osborn* (Minnesota Vikings)  
+### KJ Osborn (Minnesota Vikings)    
+
+![](images/vikings.png){width=20% height=100px}
+
 While the spotlight has been deservedly on Justin Jefferson and Adam Thielen for many years in Minnesota, Osborn should be another WR to keep an eye on this season. Jefferson has arguably turned into the best receiver in football and Thielen has been great for years, but Osborn saw an expanded role in his second NFL season last year while finishing WR40. 
 
 Osborn likely will not turn into a wide receiver that is going to carry your team. But there is still value with him currently being drafted at WR79 (229 overall). Opposing defenses are going to be focused on not letting Jefferson be the one to beat them, and Thielen is 32 this year and showed minor signs of decline last season. Osborn is heading into year three which could be a crucial year to prove his talent in the league. 
