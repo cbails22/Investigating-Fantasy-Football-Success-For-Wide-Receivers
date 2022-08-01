@@ -54,6 +54,9 @@ head(fantasy_stats)
 head(advanced_wr_stats)
 head(advanced_wr_efficiency)
 ```
+```{r}
+view(fantasy_stats)
+```
 
 ### Who averages the most touchdowns/season over the last 5 years
 
